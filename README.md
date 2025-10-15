@@ -106,22 +106,17 @@ Here’s an example of the live scoreboard display:
 <p align="center">
   <img width="578" height="457" alt="image" src="https://github.com/user-attachments/assets/9dba5fac-ec59-48a1-80ce-5e476adf0d62" />
 <br>
-  <em>Figure 5: Live Analytics.</em>
+  <em>Figure 4: Live Analytics.</em>
 </p>
 <p align="center">
 <img width="580" height="492" alt="image" src="https://github.com/user-attachments/assets/edb1ca7a-6c2d-4ac3-9b0b-4d6112845e31" />
 <br>
-  <em>Figure 4: Watch Mode Setup.</em>
-</p>
-<p align="center">
-<img width="580" height="492" alt="image" src="https://github.com/user-attachments/assets/abf6d10b-e9bf-47c0-9ae4-26c3de2b1d76" />
-<br>
-  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+  <em>Figure 5: Watch Mode Setup.</em>
 </p>
 <p align="center">
 <img width="476" height="507" alt="image" src="https://github.com/user-attachments/assets/fc2f3490-70d5-4cf9-a004-6b77d7e4d620" />
   <br>
-  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+  <em>Figure 6: Sample Pdf Report.</em>
 </p>
 
 
