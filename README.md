@@ -85,9 +85,15 @@ app/
 run.py
 requirements.txt
 
-##Sample Results
+## 🧾 Sample Results
 
+Here’s an example of the live scoreboard display:
 
-```
+<p align="center">
+  <img width="476" height="507" alt="Live Scoreboard" src="https://github.com/user-attachments/assets/1cbb7c8d-07c3-4362-b246-ba967fb86343" />
+  <br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+
 
 
