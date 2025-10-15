@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analytics</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body class="bg-light">
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/matches" class="btn btn-outline-secondary">Back</a>
+    <div>Match #{{ match_id }}</div>
+    <a class="btn btn-primary" href="/api/reports/{{ match_id }}/pdf">Download Match Report</a>
+  </div>
+  <div id="chart" style="height:400px;"></div>
+</div>
+
+<script>
+async function load(){
+  const res = await fetch('/api/matches/{{ match_id }}');
+  const m = await res.json();
+  const scoresA = m.sets.map(s=>s.team_a_score);
+  const scoresB = m.sets.map(s=>s.team_b_score);
+  Plotly.newPlot('chart', [
+    {x: m.sets.map((_,i)=>`Set ${i+1}`), y: scoresA, type:'bar', name: m.team_a},
+    {x: m.sets.map((_,i)=>`Set ${i+1}`), y: scoresB, type:'bar', name: m.team_b}
+  ], {barmode:'group', title:'Scores per Set'});
+}
+load();
+</script>
+</body>
+</html>
+

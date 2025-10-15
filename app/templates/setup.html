@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setup Match</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{ --grad-a:#667eea; --grad-b:#764ba2; --accent:#00E7FF; --panel:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12); }
+    body{ font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .hero-gradient{ background: linear-gradient(135deg, var(--grad-a) 0%, var(--grad-b) 100%); }
+    .rules-card{ background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border:none; color:#fff; }
+    .form-card{ background: var(--panel); border:1px solid var(--stroke); backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0,0,0,.25); border-radius: 16px; }
+    .voice-sample{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border:none; color:#fff; border-radius: 16px; }
+    .form-control, .form-select{ background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); color:#fff; }
+    .form-control::placeholder{ color: rgba(255,255,255,.75); }
+    .form-select option{ color:#000; background:#fff; }
+    .form-text{ color: rgba(255,255,255,.85) !important; }
+    label.form-label{ color:#fff; }
+    .form-check-label{ color:#fff; }
+    .card-header h5{ color:#fff; }
+    .btn-primary{ background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); border:none; }
+    .btn-outline-info{ color:#00E7FF; border-color:#00E7FF; }
+    .btn-outline-info:hover{ background:#00E7FF; color:#000; }
+  </style>
+</head>
+<body class="bg-dark text-white">
+<div class="hero-gradient text-white py-5 mb-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <h1 class="display-5 fw-bold mb-3">Setup Your Match</h1>
+        <p class="lead">Configure teams, scoring rules, and voice settings</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Badminton Rules Card -->
+  <div class="card rules-card mb-4">
+    <div class="card-body p-4">
+      <h4 class="card-title mb-3"><i class="bi bi-info-circle me-2"></i>Ball Badminton Rules</h4>
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><i class="bi bi-check-circle me-2"></i><strong>35 points per set</strong> - First to 35 wins</li>
+            <li class="mb-2"><i class="bi bi-check-circle me-2"></i><strong>Win by 2</strong> - Must lead by 2 points</li>
+            <li class="mb-2"><i class="bi bi-check-circle me-2"></i><strong>Court changes</strong> - At 9, 18, 27</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><i class="bi bi-check-circle me-2"></i><strong>34-34</strong> - Continue until 2-point lead</li>
+            <li class="mb-2"><i class="bi bi-check-circle me-2"></i><strong>Best of</strong> - 3 or 5 sets</li>
+            <li class="mb-2"><i class="bi bi-check-circle me-2"></i><strong>Voice</strong> - "Point to [team]", "Undo", "Next set"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Configuration Form -->
+  <div class="card form-card mb-4">
+    <div class="card-header bg-transparent border-0">
+      <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Match Configuration</h5>
+    </div>
+    <div class="card-body p-4">
+      <form id="setupForm" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Team A Name</label>
+          <input id="teamA" maxlength="15" class="form-control form-control-lg" placeholder="e.g., RVCE" required>
+          <div class="form-text">Enter first team's name</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Team B Name</label>
+          <input id="teamB" maxlength="15" class="form-control form-control-lg" placeholder="e.g., BMS" required>
+          <div class="form-text">Enter second team's name</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Scoring Mode</label>
+          <select id="mode" class="form-select form-select-lg">
+            <option value="manual">Manual Scoring Only</option>
+            <option value="voice">Voice + Manual Scoring</option>
+          </select>
+          <div class="form-text">How points will be scored</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Number of Sets</label>
+          <select id="numSets" class="form-select form-select-lg">
+            <option value="3">Best of 3 Sets</option>
+            <option value="5">Best of 5 Sets</option>
+          </select>
+          <div class="form-text">Tournament format</div>
+        </div>
+
+        <div class="col-12">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="voiceAuth">
+            <label class="form-check-label fw-bold" for="voiceAuth">Enable Voice Authentication</label>
+          </div>
+          <div id="authWarning" class="form-text">Voice authentication helps prevent accidental commands</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-bold">Voice Assistant Name</label>
+          <input id="assistant" class="form-control form-control-lg" placeholder="SmashBot" value="SmashBot">
+          <div class="form-text">Wake word: "Hey [Assistant Name]"</div>
+        </div>
+
+        <div class="col-12">
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="/" class="btn btn-outline-secondary me-md-2">Back to Home</a>
+            <a href="/matches" class="btn btn-outline-info me-md-2">View Matches</a>
+            <button type="submit" class="btn btn-primary btn-lg">Create Match</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Voice Authentication Samples -->
+  <div id="voiceSamples" class="card voice-sample" style="display: none;">
+    <div class="card-header bg-transparent border-0">
+      <h5 class="mb-0"><i class="bi bi-mic me-2"></i>Voice Command Samples</h5>
+    </div>
+    <div class="card-body p-4">
+      <p class="mb-3">Please say these commands to train the voice recognition system:</p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-light btn-sm me-3" onclick="recordSample('point')">
+              <i class="bi bi-mic"></i> Record
+            </button>
+            <div>
+              <strong>"Point to [Team Name]"</strong>
+              <div class="small">e.g., "Point to RVCE"</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-light btn-sm me-3" onclick="recordSample('undo')">
+              <i class="bi bi-mic"></i> Record
+            </button>
+            <div>
+              <strong>"Undo last point"</strong>
+              <div class="small">Remove the last scored point</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-light btn-sm me-3" onclick="recordSample('next')">
+              <i class="bi bi-mic"></i> Record
+            </button>
+            <div>
+              <strong>"Next set"</strong>
+              <div class="small">Start a new set</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-light btn-sm me-3" onclick="recordSample('score')">
+              <i class="bi bi-mic"></i> Record
+            </button>
+            <div>
+              <strong>"What's the score"</strong>
+              <div class="small">Get current score</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div id="recordingStatus" class="text-center"></div>
+        <div class="progress mt-2" style="display: none;">
+          <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<script>
+// Voice authentication samples
+let voiceSamples = {}; let isRecording = false;
+document.getElementById('voiceAuth').addEventListener('change', function(){ document.getElementById('voiceSamples').style.display = this.checked? 'block':'none'; });
+async function recordSample(command){ if (isRecording) return; const button = event.target.closest('button'); const originalText = button.innerHTML; try{ isRecording=true; button.innerHTML='<i class="bi bi-stop-circle"></i> Recording...'; button.disabled=true; document.getElementById('recordingStatus').innerHTML='Listening... Please speak clearly'; document.querySelector('.progress').style.display='block'; await new Promise(r=>setTimeout(r,2000)); voiceSamples[command]=true; button.innerHTML='<i class="bi bi-check-circle text-success"></i> Recorded'; document.getElementById('recordingStatus').innerHTML='Sample recorded successfully!'; const allRecorded=['point','undo','next','score'].every(c=>voiceSamples[c]); if(allRecorded){ document.getElementById('recordingStatus').innerHTML='All voice samples recorded! Voice authentication is ready.'; } } catch(e){ button.innerHTML=originalText; document.getElementById('recordingStatus').innerHTML='Recording failed. Please try again.'; } finally { isRecording=false; button.disabled=false; setTimeout(()=>{ document.querySelector('.progress').style.display='none'; }, 1000); } }
+// Form submission
+document.getElementById('setupForm').addEventListener('submit', async (e)=>{ e.preventDefault(); const voiceAuth=document.getElementById('voiceAuth').checked; const allSamplesRecorded=['point','undo','next','score'].every(c=>voiceSamples[c]); if(voiceAuth && !allSamplesRecorded){ alert('Please record all voice samples before creating the match.'); return; } const payload={ team_a: document.getElementById('teamA').value.trim(), team_b: document.getElementById('teamB').value.trim(), num_sets: Number(document.getElementById('numSets').value), mode: document.getElementById('mode').value, voice_auth: voiceAuth, assistant: document.getElementById('assistant').value.trim() || 'SmashBot' }; try{ const res=await fetch('/api/matches',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}); const data=await res.json(); if(res.ok){ window.location.href=`/scoreboard/${data.id}`; } else { alert('Failed to create match: ' + (data.message || res.status)); } }catch(err){ alert('Error creating match: ' + err.message); } });
+</script>
+</body>
+</html>
+

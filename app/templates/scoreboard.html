@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scoreboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --brand-accent:#00E7FF; --brand-orange:#FF9F1C; --panel-bg:rgba(255,255,255,.06); --panel-stroke:rgba(255,255,255,.12); --pane-h: 320px; }
+    body{ font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    .brand-title{ font-family:'Montserrat',sans-serif; letter-spacing:.5px; }
+    .panel{ background:var(--panel-bg); border:1px solid var(--panel-stroke); backdrop-filter:blur(8px); border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+    .team{ font-size:1.6rem; font-weight:700; opacity:.95; }
+    .score{ font-family:'Montserrat',sans-serif; font-size:7.5rem; font-weight:800; line-height:1; text-shadow:0 6px 18px rgba(0,0,0,.35); }
+    .score.pulse{ animation:pulse 420ms ease-out; }
+    @keyframes pulse{ 0%{transform:scale(1);}50%{transform:scale(1.06);}100%{transform:scale(1);} }
+    .lead-glow{ box-shadow: inset 0 0 0 2px var(--brand-accent), 0 0 28px rgba(0,231,255,.35); border-radius:16px; }
+    .wake-word-active{ box-shadow: inset 0 0 0 2px #28a745, 0 0 20px rgba(40,167,69,.4); border-radius:16px; animation: wakeWordPulse 1s ease-in-out infinite; }
+    @keyframes wakeWordPulse{ 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
+    /* Service UI */
+    .service-active{ box-shadow: inset 0 0 0 2px var(--brand-orange), 0 0 20px rgba(255,159,28,.4); border-radius:16px; }
+    .service-inactive{ opacity: 0.6; }
+    .service-text{ color: #ffffff !important; }
+    .service-status{ color: #ffffff !important; font-weight: 600; }
+    .service-label{ color: #ffffff !important; }
+    .max-consecutive{ color: #ffffff !important; font-weight: 700; }
+    .max-consecutive-label{ color: #ffffff !important; }
+    .btn-ripple{ position:relative; overflow:hidden; }
+    .btn-ripple::after{ content:""; position:absolute; left:50%; top:50%; width:0; height:0; background:rgba(255,255,255,.35); border-radius:50%; transform:translate(-50%,-50%); transition:width .35s ease,height .35s ease,opacity .6s ease; opacity:0; }
+    .btn-ripple:active::after{ width:240px; height:240px; opacity:.15; }
+
+    /* Fixed-height panes */
+    .pane{ display:flex; flex-direction:column; }
+    .pane.event{ height: 260px; }
+    .pane.analytics{ height: 420px; }
+    .pane-body{ flex:1 1 auto; overflow:auto; }
+    .list-group-item{ background:rgba(255,255,255,.04); color:#e9ecef; border-color:rgba(255,255,255,.08); }
+
+    /* Chart legend */
+    .chart-legend .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+
+    /* Confetti */
+    #confetti{ position:fixed; inset:0; pointer-events:none; z-index:9999; display:none; }
+  </style>
+</head>
+<body class="bg-dark text-white">
+<canvas id="confetti"></canvas>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/matches" class="btn btn-outline-light btn-ripple">Back</a>
+    <div class="brand-title">Match #{{ match_id }} <span id="watchMode" class="badge bg-info ms-2" style="display:none;">Watch Mode</span></div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm btn-ripple" id="announceBtn">Announcements: On</button>
+      <button class="btn btn-outline-info btn-sm btn-ripple" id="quickEnable" style="display:none;">Enable Mic</button>
+    </div>
+  </div>
+
+  <div class="row g-4 align-items-stretch">
+    <div class="col-6">
+      <div id="panelA" class="text-center p-3 panel h-100">
+        <div class="team" id="teamAName">Team A</div>
+        <div class="score" id="teamAScore">0</div>
+        <button class="btn btn-lg btn-success w-100 btn-ripple" id="btnA">+1</button>
+      </div>
+    </div>
+    <div class="col-6">
+      <div id="panelB" class="text-center p-3 panel h-100">
+        <div class="team" id="teamBName">Team B</div>
+        <div class="score" id="teamBScore">0</div>
+        <button class="btn btn-lg btn-success w-100 btn-ripple" id="btnB">+1</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Tracking Section -->
+  <div class="row g-4 mt-2">
+    <div class="col-6">
+      <div id="servicePanelA" class="panel p-3 text-center">
+        <div class="small service-label mb-2">Service</div>
+        <div class="h4 mb-0 service-text" id="serviceHandA">Hand 1</div>
+        <div class="small service-status" id="serviceStatusA">Serving</div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div id="servicePanelB" class="panel p-3 text-center">
+        <div class="small service-label mb-2">Service</div>
+        <div class="h4 mb-0 service-text" id="serviceHandB">Hand 1</div>
+        <div class="small service-status" id="serviceStatusB">Not Serving</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Max Consecutive Service Display -->
+  <div class="row g-4 mt-1">
+    <div class="col-12">
+      <div class="panel p-3 text-center">
+        <div class="small max-consecutive-label mb-2">Max Consecutive Service</div>
+        <div class="h5 mb-0 max-consecutive" id="maxConsecutiveService">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 d-flex justify-content-between align-items-center">
+    <div class="panel px-3 py-2">Set <span id="setNumber">1</span></div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-light btn-sm btn-ripple" id="undoBtn">Undo last</button>
+      <button class="btn btn-outline-warning btn-sm btn-ripple" id="nextSetBtn">Next set</button>
+      <button class="btn btn-outline-danger btn-sm btn-ripple" id="resetBtn">Reset match</button>
+      <button class="btn btn-outline-info btn-sm btn-ripple" id="micBtn">Mic: Off</button>
+      <button class="btn btn-outline-success btn-sm btn-ripple" id="wakeWordBtn">Wake Word: Off</button>
+      <button class="btn btn-primary btn-sm btn-ripple" id="pttBtn">Push-to-talk</button>
+    </div>
+  </div>
+
+  <!-- Stacked: Event Log then Live Analytics (both fixed height) -->
+  <div class="row g-4 mt-1">
+    <div class="col-12 d-flex">
+      <div class="panel pane event w-100 p-3">
+        <h6 class="mb-2">Event Log</h6>
+        <ul class="list-group pane-body" id="log"></ul>
+        <div class="form-text text-secondary mt-2">
+          <div>Transcript: <span id="transcriptText">(waiting for wake word)</span></div>
+          <div class="small" id="voiceStatus">Voice: Off | Wake Word: Inactive</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 d-flex">
+      <div class="panel pane analytics w-100 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="m-0">Live Analytics</h6>
+          <div class="chart-legend small text-muted">
+            <span class="dot" style="background:#17a2b8"></span><span id="legendA">Team A</span>
+            <span class="ms-3 dot" style="background:#fd7e14"></span><span id="legendB">Team B</span>
+          </div>
+        </div>
+        <div class="pane-body">
+          <div class="row g-2 mb-2">
+            <div class="col-sm-6 col-lg-3"><div class="panel p-2"><div class="small text-muted">MATCH DURATION (TIME)</div><div class="h5 text-info m-0" id="matchDuration">0:00</div></div></div>
+            <div class="col-sm-6 col-lg-3"><div class="panel p-2"><div class="small text-muted">TOTAL RALLIES (COUNT)</div><div class="h5 text-info m-0" id="totalRallies">0</div></div></div>
+            <div class="col-sm-6 col-lg-3"><div class="panel p-2"><div class="small text-muted">LEAD CHANGES (COUNT)</div><div class="h5 text-info m-0" id="leadChanges">0</div></div></div>
+            <div class="col-sm-6 col-lg-3"><div class="panel p-2"><div class="small text-muted">CURRENT LEAD (POINTS)</div><div class="h5 text-info m-0" id="currentLead">Tied</div></div></div>
+          </div>
+          <div class="panel p-2" style="height:260px;">
+            <canvas id="scoreChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Winner Modal -->
+<div class="modal fade" id="winnerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-white panel">
+      <div class="modal-header"><h5 class="modal-title brand-title">Set Finished</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body"><div id="winnerText">Congratulations!</div></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary btn-ripple" data-bs-dismiss="modal">Close</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- MediaPipe JS (for in-page gesture recognition) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="/static/js/voice.js?v=2"></script>
+<script>
+const matchId = Number('{{ match_id }}');
+window.matchId = matchId;
+window.WAKE_WORD = 'hey smashbot';
+const api = (path, opts={}) => fetch('/api' + path, Object.assign({headers:{'Content-Type':'application/json'}}, opts));
+
+// Check if this is watch mode (from URL parameter or referrer)
+const urlParams = new URLSearchParams(window.location.search);
+const isWatchMode = urlParams.get('watch') === 'true' || document.referrer.includes('/watch');
+
+if (isWatchMode) {
+  // Show watch mode indicator
+  document.getElementById('watchMode').style.display = 'inline-block';
+  
+  // Hide all control buttons
+  document.getElementById('btnA').style.display = 'none';
+  document.getElementById('btnB').style.display = 'none';
+  document.getElementById('undoBtn').style.display = 'none';
+  document.getElementById('nextSetBtn').style.display = 'none';
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('micBtn').style.display = 'none';
+  document.getElementById('wakeWordBtn').style.display = 'none';
+  document.getElementById('pttBtn').style.display = 'none';
+  document.getElementById('quickEnable').style.display = 'none';
+  
+  // Disable voice functionality
+  if (window.Voice) {
+    window.Voice.stop();
+  }
+
+}
+
+// Gesture mode toggle UI (always visible)
+if (!document.getElementById('gestureToggle')){
+	const gbtn = document.createElement('button');
+	gbtn.id = 'gestureToggle';
+	gbtn.className = 'btn btn-sm btn-outline-primary';
+	gbtn.style.position = 'fixed';
+	gbtn.style.bottom = '16px';
+	gbtn.style.right = '16px';
+	gbtn.style.zIndex = '1050';
+	gbtn.textContent = 'Enable Gestures';
+	document.body.appendChild(gbtn);
+
+	async function refreshGestureState(){
+		try{
+			const res = await fetch(`/api/matches/${matchId}`);
+			const m = await res.json();
+			const enabled = !!m.gesture_enabled;
+			gbtn.textContent = enabled ? 'Disable Gestures' : 'Enable Gestures';
+			gbtn.className = enabled ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-outline-primary';
+		}catch(_){/* ignore */}
+	}
+	refreshGestureState();
+
+	gbtn.addEventListener('click', async ()=>{
+		try{
+			const enabledNow = gbtn.textContent.includes('Disable');
+			const res = await fetch(`/api/matches/${matchId}/gesture_mode`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({enabled: !enabledNow})});
+			await res.json();
+			refreshGestureState();
+		}catch(_){/* ignore */}
+	});
+}
+
+// Inline gesture recognition using MediaPipe (browser webcam)
+let gestureCamera = null;
+let hands = null;
+let gestureEnabled = false;
+let stableKind = null;
+let stableSince = 0;
+let lastAcceptedAt = 0;
+const STABLE_MS = 600;
+const COOLDOWN_MS = 1200;
+
+function ensureGestureElements(){
+	if (!document.getElementById('gestureVideo')){
+		const v = document.createElement('video');
+		v.id = 'gestureVideo';
+		v.autoplay = true; v.muted = true; v.playsInline = true;
+		v.style.position = 'fixed'; v.style.bottom = '72px'; v.style.right = '16px';
+		v.style.width = '260px'; v.style.border = '2px solid #0d6efd'; v.style.borderRadius = '8px'; v.style.zIndex = '1050'; v.style.display = 'none';
+		document.body.appendChild(v);
+	}
+	if (!document.getElementById('gestureCanvas')){
+		const c = document.createElement('canvas');
+		c.id = 'gestureCanvas';
+		c.style.position = 'fixed'; c.style.bottom = '72px'; c.style.right = '16px';
+		c.style.width = '260px'; c.style.border = '2px solid transparent'; c.style.borderRadius = '8px'; c.style.zIndex = '1051'; c.style.display = 'none';
+		document.body.appendChild(c);
+	}
+}
+
+async function startGestureCamera(){
+	ensureGestureElements();
+	const videoEl = document.getElementById('gestureVideo');
+	const canvasEl = document.getElementById('gestureCanvas');
+	videoEl.style.display = 'block';
+	canvasEl.style.display = 'block';
+
+	if (!hands){
+		hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+		hands.setOptions({
+			maxNumHands: 1,
+			modelComplexity: 0,
+			minDetectionConfidence: 0.5,
+			minTrackingConfidence: 0.5,
+		});
+		hands.onResults(onHandsResults);
+	}
+
+	gestureCamera = new Camera(videoEl, {
+		onFrame: async () => { await hands.send({image: videoEl}); },
+		width: 480,
+		height: 360,
+	});
+	gestureCamera.start();
+}
+
+function stopGestureCamera(){
+	const videoEl = document.getElementById('gestureVideo');
+	const canvasEl = document.getElementById('gestureCanvas');
+	if (gestureCamera){ try{ gestureCamera.stop(); }catch(_){ } }
+	videoEl && (videoEl.style.display = 'none');
+	canvasEl && (canvasEl.style.display = 'none');
+}
+
+function countExtendedFingers(landmarks){
+	// Indices: index(8/6), middle(12/10), ring(16/14), pinky(20/18)
+	const tipPip = [[8,6],[12,10],[16,14],[20,18]];
+	let count = 0;
+	for (const [tip,pip] of tipPip){ if (landmarks[tip].y < landmarks[pip].y) count++; }
+	return count;
+}
+
+let lastWrist = null; // {x,t}
+function detectSwipe(landmarks){
+	const wrist = landmarks[0];
+	const t = performance.now();
+	if (lastWrist){
+		const dx = wrist.x - lastWrist.x;
+		const dt = Math.max(1, t - lastWrist.t);
+		const vx = dx / dt; // normalized per ms
+		if (Math.abs(vx) > 0.003){ // tuned for webcam rate
+			return vx > 0 ? 'swipe_right' : 'swipe_left';
+		}
+	}
+	lastWrist = {x: wrist.x, t};
+	return null;
+}
+
+async function sendGestureCommand(kind){
+	try{
+		await fetch(`/api/matches/${matchId}/gesture_command`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({command: kind})});
+	}catch(_){ }
+}
+
+function onHandsResults(results){
+	const canvasEl = document.getElementById('gestureCanvas');
+	const videoEl = document.getElementById('gestureVideo');
+	const ctx = canvasEl.getContext('2d');
+	canvasEl.width = videoEl.videoWidth; canvasEl.height = videoEl.videoHeight;
+	ctx.save();
+	ctx.clearRect(0,0,canvasEl.width, canvasEl.height);
+	ctx.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
+
+	let currentKind = 'none';
+	let confidence = 0.0;
+	if (results.multiHandLandmarks && results.multiHandLandmarks.length){
+		const lm = results.multiHandLandmarks[0];
+		if (window.drawConnectors){
+			window.drawConnectors(ctx, lm, window.HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+			window.drawLandmarks(ctx, lm, {color: '#FF0000', lineWidth: 1});
+		}
+		const fingers = countExtendedFingers(lm);
+		if (fingers === 0){ currentKind = 'undo'; confidence = 0.9; }
+		else if (fingers === 1){ currentKind = 'point_a'; confidence = 0.9; }
+		else if (fingers === 2){ currentKind = 'point_b'; confidence = 0.9; }
+		const swipe = detectSwipe(lm);
+		if (swipe === 'swipe_right'){ currentKind = 'next_set'; confidence = 0.95; }
+		if (swipe === 'swipe_left'){ currentKind = 'reset_match'; confidence = 0.95; }
+	}
+
+	// HUD
+	ctx.fillStyle = 'rgba(0,0,0,0.6)';
+	ctx.fillRect(6,6,220,42);
+	ctx.fillStyle = '#fff';
+	ctx.font = '14px sans-serif';
+	ctx.fillText(`gesture=${currentKind} conf=${confidence.toFixed(2)}`, 14, 30);
+	ctx.restore();
+
+	// Stabilization and cooldown
+	const now = performance.now();
+	if (currentKind !== stableKind){
+		stableKind = currentKind; stableSince = now;
+	}
+	const stableFor = now - stableSince;
+	if (currentKind !== 'none' && stableFor >= STABLE_MS && (now - lastAcceptedAt) >= COOLDOWN_MS){
+		lastAcceptedAt = now;
+		sendGestureCommand(currentKind);
+	}
+}
+
+// Hook into gesture mode toggle button to start/stop webcam inline
+(async function attachGestureToggle(){
+	const btn = document.getElementById('gestureToggle');
+	if (!btn) return;
+	btn.addEventListener('click', async ()=>{
+		setTimeout(async ()=>{
+			try{
+				const res = await fetch(`/api/matches/${matchId}`);
+				const m = await res.json();
+				const enabled = !!m.gesture_enabled;
+				if (enabled) startGestureCamera(); else stopGestureCamera();
+			}catch(_){ }
+		}, 250);
+	});
+})();
+
+// Allow default transports so it works without eventlet/gevent
+const socket = io();
+// Join room after connect to ensure subscription
+socket.on('connect', () => { socket.emit('join_match', {match_id: matchId}); });
+socket.on('score_update', p => { if (p.match_id === matchId) renderScores(p); });
+socket.on('transcript', p => {
+  if (p.match_id === matchId && p.text) {
+    document.getElementById('transcriptText').textContent = p.text;
+  }
+});
+socket.on('event', e => {
+  if (e.match_id !== matchId) return;
+  const li = document.createElement('li');
+  li.className = 'list-group-item';
+  const ts = new Date().toLocaleTimeString();
+  let label = e.action;
+  const teamAName = document.getElementById('teamAName').textContent || 'Team A';
+  const teamBName = document.getElementById('teamBName').textContent || 'Team B';
+  if (e.action === 'point_a') label = `Point to ${teamAName}`;
+  else if (e.action === 'point_b') label = `Point to ${teamBName}`;
+  else if (e.action === 'undo') label = 'Undo last point';
+  else if (e.action === 'gesture_mode') label = `Gesture mode ${e.enabled ? 'enabled' : 'disabled'}`;
+  li.textContent = `${ts} · ${label}`;
+  document.getElementById('log').prepend(li);
+});
+
+let lastAnnounceKey = null; // `${set_id}-${a}-${b}` to avoid repeats
+let lastScoreSpokenKey = null; // generic score announcement dedupe
+let currentSetId = 0;
+let activeCourtThreshold = null; // holds 9/18/27 while on board after announcing
+
+// Analytics tracking
+let matchStartTime = Date.now();
+let rallyCount = 0;
+let leadChanges = 0;
+let lastLeader = null;
+let scoreHistory = [];
+let chart = null;
+let momentumWindow = [];// last 10 rallies
+
+function pulseScore(el){
+  el.classList.remove('pulse');
+  void el.offsetWidth; // restart animation
+  el.classList.add('pulse');
+}
+function setLeadGlow(leader){
+  document.getElementById('panelA').classList.toggle('lead-glow', leader==='A');
+  document.getElementById('panelB').classList.toggle('lead-glow', leader==='B');
+}
+
+function updateServiceTracking(p) {
+  // Update service hand displays
+  if (typeof p.team_a_service_hand === 'number') {
+    const el = document.getElementById('serviceHandA');
+    if (el) el.textContent = `Hand ${p.team_a_service_hand}`;
+  }
+  if (typeof p.team_b_service_hand === 'number') {
+    const el = document.getElementById('serviceHandB');
+    if (el) el.textContent = `Hand ${p.team_b_service_hand}`;
+  }
+  
+  // Update serving team status
+  const servingTeam = p.current_serving_team;
+  const servicePanelA = document.getElementById('servicePanelA');
+  const servicePanelB = document.getElementById('servicePanelB');
+  const serviceStatusA = document.getElementById('serviceStatusA');
+  const serviceStatusB = document.getElementById('serviceStatusB');
+  
+  if (servingTeam === 'A') {
+    servicePanelA && servicePanelA.classList.add('service-active');
+    servicePanelA && servicePanelA.classList.remove('service-inactive');
+    servicePanelB && servicePanelB.classList.remove('service-active');
+    servicePanelB && servicePanelB.classList.add('service-inactive');
+    if (serviceStatusA) serviceStatusA.textContent = 'Serving';
+    if (serviceStatusB) serviceStatusB.textContent = 'Not Serving';
+  } else if (servingTeam === 'B') {
+    servicePanelB && servicePanelB.classList.add('service-active');
+    servicePanelB && servicePanelB.classList.remove('service-inactive');
+    servicePanelA && servicePanelA.classList.remove('service-active');
+    servicePanelA && servicePanelA.classList.add('service-inactive');
+    if (serviceStatusA) serviceStatusA.textContent = 'Not Serving';
+    if (serviceStatusB) serviceStatusB.textContent = 'Serving';
+  }
+  
+  // Update max consecutive service
+  const maxConsecutive = Math.max(
+    p.team_a_max_consecutive || 0,
+    p.team_b_max_consecutive || 0
+  );
+  const maxEl = document.getElementById('maxConsecutiveService');
+  if (maxEl) maxEl.textContent = maxConsecutive;
+}
+// Removed UI: make these safe no-ops
+function updateMomentum(leader){ return; }
+function moveRallyDot(a,b){ return; }
+
+// Confetti celebration (lightweight)
+function celebrate(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = window.innerWidth;
+  const H = canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+  const pieces = Array.from({length: 180}).map(()=>({
+    x: Math.random()*W,
+    y: -20 - Math.random()*H,
+    r: 4+Math.random()*6,
+    c: Math.random()>.5? '#00E7FF':'#FF9F1C',
+    s: 2+Math.random()*3,
+    a: Math.random()*Math.PI
+  }));
+  let t = 0, id;
+  const draw=()=>{
+    ctx.clearRect(0,0,W,H);
+    pieces.forEach(p=>{
+      p.y+=p.s; p.x+=Math.sin(p.a+t)*1.2; p.a+=0.02;
+      ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    });
+    t+=0.01; id=requestAnimationFrame(draw);
+  };
+  draw();
+  setTimeout(()=>{ cancelAnimationFrame(id); canvas.style.display='none'; }, 3200);
+}
+
+function renderScores(p){
+  const aEl = document.getElementById('teamAScore');
+  const bEl = document.getElementById('teamBScore');
+  const prevA = Number(aEl.textContent);
+  const prevB = Number(bEl.textContent);
+
+  if (typeof p.team_a_score === 'number') aEl.textContent = p.team_a_score;
+  if (typeof p.team_b_score === 'number') bEl.textContent = p.team_b_score;
+  const a = Number(aEl.textContent);
+  const b = Number(bEl.textContent);
+  const incomingSetId = p.set_id || 0;
+  if (incomingSetId !== currentSetId){
+    currentSetId = incomingSetId;
+    lastScoreSpokenKey = null;
+    activeCourtThreshold = null;
+    momentumWindow = [];
+  }
+
+  // Score animations
+  if (a>prevA) pulseScore(aEl);
+  if (b>prevB) pulseScore(bEl);
+
+  // Update service tracking UI
+  updateServiceTracking(p);
+
+  // Winner handling: disable inputs and show modal once
+  if (p.winner){
+    document.getElementById('btnA').disabled = true;
+    document.getElementById('btnB').disabled = true;
+    document.getElementById('undoBtn').disabled = true;
+    document.getElementById('nextSetBtn').disabled = false;
+    document.getElementById('micBtn').disabled = true;
+    const winnerText = document.getElementById('winnerText');
+    const teamAName = document.getElementById('teamAName').textContent || 'Team A';
+    const teamBName = document.getElementById('teamBName').textContent || 'Team B';
+    winnerText.textContent = `Congratulations to ${p.winner}! Final score ${a}-${b}.`;
+    const modalEl = document.getElementById('winnerModal');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+    celebrate();
+  } else {
+    document.getElementById('btnA').disabled = false;
+    document.getElementById('btnB').disabled = false;
+    document.getElementById('undoBtn').disabled = false;
+    document.getElementById('nextSetBtn').disabled = false;
+    document.getElementById('micBtn').disabled = false;
+  }
+
+  // Analytics & visuals
+  updateAnalytics(a, b);
+  const leader = a>b? 'A' : (b>a? 'B' : 'Tied');
+  setLeadGlow(leader);
+  updateMomentum(leader);
+  moveRallyDot(a,b);
+  maybeAnnounce(p, a, b);
+}
+
+async function hydrate(){
+  const res = await api(`/matches/${matchId}`);
+  const m = await res.json();
+  document.getElementById('teamAName').textContent = m.team_a;
+  document.getElementById('teamBName').textContent = m.team_b;
+  const lastSet = (m.sets && m.sets.length) ? m.sets[m.sets.length - 1] : null;
+  if (lastSet){
+    document.getElementById('teamAScore').textContent = lastSet.team_a_score;
+    document.getElementById('teamBScore').textContent = lastSet.team_b_score;
+    document.getElementById('setNumber').textContent = m.sets.length;
+    updateAnalytics(lastSet.team_a_score, lastSet.team_b_score);
+    // Load service tracking data
+    updateServiceTracking({
+      team_a_service_hand: lastSet.team_a_service_hand,
+      team_b_service_hand: lastSet.team_b_service_hand,
+      team_a_max_consecutive: lastSet.team_a_max_consecutive,
+      team_b_max_consecutive: lastSet.team_b_max_consecutive,
+      current_serving_team: lastSet.current_serving_team
+    });
+  } else {
+    document.getElementById('setNumber').textContent = 1;
+    updateAnalytics(0, 0);
+    // Initialize service tracking defaults
+    updateServiceTracking({
+      team_a_service_hand: 1,
+      team_b_service_hand: 1,
+      team_a_max_consecutive: 0,
+      team_b_max_consecutive: 0,
+      current_serving_team: 'A'
+    });
+  }
+  initChart();
+  setLegends(); // Update legends after hydrate
+}
+hydrate();
+
+// Update match duration every second
+setInterval(() => {
+  const duration = Math.floor((Date.now() - matchStartTime) / 1000);
+  const minutes = Math.floor(duration / 60);
+  const seconds = duration % 60;
+  document.getElementById('matchDuration').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}, 1000);
+
+async function addPoint(team){
+  // ensure a set exists
+  let res = await api(`/matches/${matchId}`);
+  let m = await res.json();
+  let last = m.sets?.slice(-1)[0] || null;
+  let setId = last?.set_id;
+  if (!setId){
+    const c = await api(`/matches/${matchId}/sets`, {method:'POST'});
+    const s = await c.json();
+    setId = s.set_id;
+  }
+  const a = Number(document.getElementById('teamAScore').textContent);
+  const b = Number(document.getElementById('teamBScore').textContent);
+  const body = team==='A' ? {team_a_score: a+1} : {team_b_score: b+1};
+  await api(`/matches/${matchId}/sets/${setId}/score`, {method:'POST', body: JSON.stringify(body)});
+  await api(`/matches/${matchId}/events`, {method:'POST', body: JSON.stringify({action: team==='A'?'point_a':'point_b', extra_data: { set_id: setId }})});
+}
+
+function logItem(text){
+  const li = document.createElement('li');
+  li.className = 'list-group-item';
+  li.textContent = new Date().toLocaleTimeString() + ' · ' + text;
+  document.getElementById('log').prepend(li);
+}
+
+function speak(text){
+  if (!announceEnabled) return;
+  if ('speechSynthesis' in window){
+    const u = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(u);
+  }
+}
+
+function maybeAnnounce(p, a, b){
+  const setId = p.set_id || currentSetId || 0;
+  const teamAName = document.getElementById('teamAName').textContent || 'Team A';
+  const teamBName = document.getElementById('teamBName').textContent || 'Team B';
+  const key = `${setId}-${a}-${b}`;
+  if (p.court_change) {
+    activeCourtThreshold = p.threshold || activeCourtThreshold;
+    lastScoreSpokenKey = key;
+    speak(`Court change. ${teamAName} ${a}, ${teamBName} ${b}.`);
+    return;
+  }
+  if (activeCourtThreshold && (a === activeCourtThreshold || b === activeCourtThreshold)) {
+    return;
+  }
+  if (activeCourtThreshold && (a !== activeCourtThreshold && b !== activeCourtThreshold)) {
+    activeCourtThreshold = null;
+  }
+  if (lastScoreSpokenKey !== key) {
+    lastScoreSpokenKey = key;
+    speak(`Score is now ${a}-${b}.`);
+  }
+  if (p.announcement) {
+    speak(p.announcement);
+  }
+}
+
+// Analytics functions
+function updateAnalytics(a, b) {
+  rallyCount = a + b;
+  document.getElementById('totalRallies').textContent = rallyCount;
+  const duration = Math.floor((Date.now() - matchStartTime) / 1000);
+  const minutes = Math.floor(duration / 60);
+  const seconds = duration % 60;
+  document.getElementById('matchDuration').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  let currentLeader = null; if (a > b) currentLeader = 'A'; else if (b > a) currentLeader = 'B'; else currentLeader = 'Tied';
+  if (lastLeader && lastLeader !== currentLeader && lastLeader !== 'Tied') { leadChanges++; document.getElementById('leadChanges').textContent = leadChanges; }
+  lastLeader = currentLeader;
+  const teamAName = document.getElementById('teamAName').textContent || 'Team A';
+  const teamBName = document.getElementById('teamBName').textContent || 'Team B';
+  if (currentLeader === 'A') document.getElementById('currentLead').textContent = `${teamAName} +${a-b}`;
+  else if (currentLeader === 'B') document.getElementById('currentLead').textContent = `${teamBName} +${b-a}`;
+  else document.getElementById('currentLead').textContent = 'Tied';
+  scoreHistory.push({ rally: rallyCount, teamA: a, teamB: b });
+  updateChart();
+}
+
+function initChart() {
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: document.getElementById('teamAName').textContent || 'Team A',
+        data: [],
+        borderColor: '#17a2b8',
+        backgroundColor: 'rgba(23, 162, 184, 0.1)',
+        tension: 0.25
+      }, {
+        label: document.getElementById('teamBName').textContent || 'Team B',
+        data: [],
+        borderColor: '#fd7e14',
+        backgroundColor: 'rgba(253, 126, 20, 0.1)',
+        tension: 0.25
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#ffffff' } } },
+      scales: {
+        x: { title: { display: true, text: 'Rally', color: '#ffffff' }, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,.1)' } },
+        y: { title: { display: true, text: 'Score', color: '#ffffff' }, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,.1)' } }
+      }
+    }
+  });
+}
+
+function updateChart() {
+  if (!chart) return;
+  const labels = scoreHistory.map((_, i) => i);
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = scoreHistory.map(s => s.teamA);
+  chart.data.datasets[1].data = scoreHistory.map(s => s.teamB);
+  chart.update('none');
+}
+
+document.getElementById('btnA').onclick = ()=> addPoint('A');
+document.getElementById('btnB').onclick = ()=> addPoint('B');
+document.getElementById('undoBtn').onclick = async ()=>{ await api(`/matches/${matchId}/undo`, {method:'POST'}); };
+document.getElementById('nextSetBtn').onclick = async ()=>{ await fetch(`/api/voice/transcript`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({match_id: matchId, transcript:'next set'})}); };
+document.getElementById('resetBtn').onclick = async ()=>{ await fetch(`/api/voice/transcript`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({match_id: matchId, transcript:'reset match'})}); };
+
+// Start voice listener if available
+const micBtn = document.getElementById('micBtn');
+const wakeWordBtn = document.getElementById('wakeWordBtn');
+const quickEnable = document.getElementById('quickEnable');
+const pttBtn = document.getElementById('pttBtn');
+const voiceStatusEl = document.getElementById('voiceStatus');
+
+if (window.Voice && window.Voice.isAvailable()) {
+  // Voice status event listener
+  window.addEventListener('voice.status', (ev)=>{
+    const { listening, mode, wakeWordActive } = ev.detail || {};
+    
+    // Update mic button
+    micBtn.textContent = 'Mic: ' + (listening ? 'On' : 'Off');
+    micBtn.classList.toggle('btn-outline-info', !listening);
+    micBtn.classList.toggle('btn-info', listening);
+    
+    // Update wake word button
+    wakeWordBtn.textContent = 'Wake Word: ' + (mode === 'wake_word' ? 'On' : 'Off');
+    wakeWordBtn.classList.toggle('btn-outline-success', mode !== 'wake_word');
+    wakeWordBtn.classList.toggle('btn-success', mode === 'wake_word');
+    
+    // Update voice status display
+    let statusText = `Voice: ${mode === 'off' ? 'Off' : 'On'} | Wake Word: ${wakeWordActive ? 'Active' : 'Inactive'}`;
+    if (mode === 'wake_word' && !wakeWordActive) {
+      statusText += ' (Say "hey smashbot" to activate)';
+    }
+    voiceStatusEl.textContent = statusText;
+    
+    // Visual feedback for wake word activation
+    const eventPanel = document.querySelector('.pane.event');
+    if (wakeWordActive) {
+      eventPanel.classList.add('wake-word-active');
+    } else {
+      eventPanel.classList.remove('wake-word-active');
+    }
+  });
+  
+  // Mic button - toggles continuous mode
+  micBtn.onclick = ()=>{ 
+    if (micBtn.textContent.includes('Off')) { 
+      window.Voice.start('continuous'); 
+    } else { 
+      window.Voice.stop(); 
+    } 
+  };
+  
+  // Wake word button - toggles wake word mode
+  wakeWordBtn.onclick = ()=>{ 
+    if (wakeWordBtn.textContent.includes('Off')) { 
+      window.Voice.start('wake_word'); 
+    } else { 
+      window.Voice.stop(); 
+    } 
+  };
+  
+  // Quick enable button - enables wake word mode
+  quickEnable.onclick = ()=>{ 
+    const ok = window.enableAutoVoice && window.enableAutoVoice('wake_word'); 
+    if (!ok) alert('SpeechRecognition not supported in this browser.'); 
+  };
+  
+  // Push-to-talk button - manual activation
+  pttBtn.onclick = async ()=>{ 
+    pttBtn.disabled = true; 
+    pttBtn.textContent = 'Listening...'; 
+    const t = await window.Voice.listenOnce(7000); 
+    pttBtn.disabled = false; 
+    pttBtn.textContent = 'Push-to-talk'; 
+    if (t && typeof window.matchId === 'number'){ 
+      try{ 
+        await fetch('/api/voice/transcript', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({match_id: matchId, transcript: t})}); 
+      }catch(_){} 
+    } 
+  };
+} else {
+  micBtn.disabled = true; micBtn.textContent = 'Mic: Unsupported'; 
+  wakeWordBtn.disabled = true; wakeWordBtn.textContent = 'Wake Word: Unsupported';
+  quickEnable.disabled = true; pttBtn.disabled = true;
+}
+
+// Announcements toggle
+let announceEnabled = true;
+const announceBtn = document.getElementById('announceBtn');
+announceBtn.onclick = function(){ announceEnabled = !announceEnabled; announceBtn.textContent = 'Announcements: ' + (announceEnabled ? 'On' : 'Off'); announceBtn.classList.toggle('btn-outline-secondary', announceEnabled); announceBtn.classList.toggle('btn-outline-danger', !announceEnabled); };
+
+function setLegends(){ document.getElementById('legendA').textContent = document.getElementById('teamAName').textContent; document.getElementById('legendB').textContent = document.getElementById('teamBName').textContent; }
+</script>
+</body>
+</html>
+
