@@ -1,4 +1,39 @@
+#Voice and Gesture-Activated Scorekeeping and Real-Time Scoreboard Management System for Ball Badminton
+
+##📖 Project Description
+
+This project introduces an AI-powered voice and gesture-based scorekeeping system designed to modernize traditional Ball Badminton scoring. The system allows umpires to record scores using voice commands or hand gestures, reducing manual errors and improving the speed and accuracy of scoring. It also offers real-time score updates, event logging, and automatic match reports, creating a professional and engaging experience for players, coaches, and fans.
+
+Built using Flask (backend), SQLAlchemy (database), and Socket.IO (real-time communication), the system ensures seamless synchronization between the umpire’s interface, the live scoreboard, and spectator dashboards. The Web Speech API and Vosk handle voice recognition, while MediaPipe and OpenCV enable gesture-based scoring.
+
+##🎯 Why It Is Used
+
+To eliminate score disputes and human errors during matches.
+
+To provide hands-free scoring for umpires using voice or gesture controls.
+
+To display live scores and analytics for spectators and coaches.
+
+To auto-generate match reports with all scores, events, and statistics.
+
+To make Ball Badminton smarter, fairer, and more interactive through technology.
+
+⚙️ Key Features
+
+🎙️ Voice & Gesture-Based Scoring
+
+🔁 Real-Time Score Updates via WebSockets
+
+📊 Event Logging & Live Analytics
+
+🧠 AI-Driven Command Recognition
+
+📄 Auto-Generated Match Reports (PDF)
+
+👀 Live Viewer Dashboard for Fans
+
 # Live Scoreboard (Flask + Socket.IO + Bootstrap)
+
 
 ## Features
 - Flask backend with REST API
