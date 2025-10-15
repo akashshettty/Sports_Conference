@@ -99,11 +99,6 @@ Here’s an example of the live scoreboard display:
   <em>Figure 1: Voice-activated scorekeeping interface.</em>
 </p>
 <p align="center">
-<img width="476" height="507" alt="image" src="https://github.com/user-attachments/assets/fc2f3490-70d5-4cf9-a004-6b77d7e4d620" />
-  <br>
-  <em>Figure 1: Voice-activated scorekeeping interface.</em>
-</p>
-<p align="center">
 <img width="674" height="531" alt="image" src="https://github.com/user-attachments/assets/6240eeee-fbdb-46bf-b36c-2d49cda657b2" />
 <br>
   <em>Figure 1: Voice-activated scorekeeping interface.</em>
@@ -121,6 +116,11 @@ Here’s an example of the live scoreboard display:
 <p align="center">
 <img width="580" height="492" alt="image" src="https://github.com/user-attachments/assets/abf6d10b-e9bf-47c0-9ae4-26c3de2b1d76" />
 <br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+<p align="center">
+<img width="476" height="507" alt="image" src="https://github.com/user-attachments/assets/fc2f3490-70d5-4cf9-a004-6b77d7e4d620" />
+  <br>
   <em>Figure 1: Voice-activated scorekeeping interface.</em>
 </p>
 
