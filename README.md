@@ -88,22 +88,43 @@ requirements.txt
 ## 🧾 Sample Results
 
 Here’s an example of the live scoreboard display:
-<img width="786" height="517" alt="image" src="https://github.com/user-attachments/assets/e384a37d-1945-4610-8dff-a550c409af97" />
-<img width="604" height="492" alt="image" src="https://github.com/user-attachments/assets/16b1704e-7a3d-4393-9c04-01dc922f3a69" />
-<img width="476" height="507" alt="image" src="https://github.com/user-attachments/assets/fc2f3490-70d5-4cf9-a004-6b77d7e4d620" />
-<img width="674" height="531" alt="image" src="https://github.com/user-attachments/assets/6240eeee-fbdb-46bf-b36c-2d49cda657b2" />
-<img width="578" height="457" alt="image" src="https://github.com/user-attachments/assets/ce862f7d-6810-4878-9f73-f90aeca0a180" />
-<img width="594" height="457" alt="image" src="https://github.com/user-attachments/assets/2646b2b9-d514-4468-9cb2-fe3f04a4394f" />
-<img width="580" height="492" alt="image" src="https://github.com/user-attachments/assets/abf6d10b-e9bf-47c0-9ae4-26c3de2b1d76" />
-
-
-
-
 <p align="center">
-  <img width="476" height="507" alt="Live Scoreboard" src="https://github.com/user-attachments/assets/1cbb7c8d-07c3-4362-b246-ba967fb86343" />
+<img width="786" height="517" alt="image" src="https://github.com/user-attachments/assets/e384a37d-1945-4610-8dff-a550c409af97" />
   <br>
   <em>Figure 1: Voice-activated scorekeeping interface.</em>
 </p>
+<p align="center">
+<img width="604" height="492" alt="image" src="https://github.com/user-attachments/assets/16b1704e-7a3d-4393-9c04-01dc922f3a69" />
+  <br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+<p align="center">
+<img width="476" height="507" alt="image" src="https://github.com/user-attachments/assets/fc2f3490-70d5-4cf9-a004-6b77d7e4d620" />
+  <br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+<p align="center">
+<img width="674" height="531" alt="image" src="https://github.com/user-attachments/assets/6240eeee-fbdb-46bf-b36c-2d49cda657b2" />
+<br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+<p align="center">
+<img width="578" height="457" alt="image" src="https://github.com/user-attachments/assets/ce862f7d-6810-4878-9f73-f90aeca0a180" />
+  <br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+<p align="center">
+<img width="594" height="457" alt="image" src="https://github.com/user-attachments/assets/2646b2b9-d514-4468-9cb2-fe3f04a4394f" />
+  <br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+<p align="center">
+<img width="580" height="492" alt="image" src="https://github.com/user-attachments/assets/abf6d10b-e9bf-47c0-9ae4-26c3de2b1d76" />
+<br>
+  <em>Figure 1: Voice-activated scorekeeping interface.</em>
+</p>
+
+
 
 
 
