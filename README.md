@@ -84,7 +84,7 @@ app/
 
 run.py
 requirements.txt
-
+```
 ## 🧾 Sample Results
 
 Here’s an example of the live scoreboard display:
@@ -94,6 +94,7 @@ Here’s an example of the live scoreboard display:
   <br>
   <em>Figure 1: Voice-activated scorekeeping interface.</em>
 </p>
+
 
 
 
