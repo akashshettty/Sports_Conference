@@ -18,7 +18,7 @@ To auto-generate match reports with all scores, events, and statistics.
 
 To make Ball Badminton smarter, fairer, and more interactive through technology.
 
-⚙️ How It Works
+## ⚙️ How It Works
 
 Voice & Gesture Recognition:
 Umpires can update scores using simple voice commands (via Web Speech API & Vosk) or gestures (via MediaPipe + OpenCV). Commands like “Point Team A” or a ✌️ hand gesture instantly update the live scoreboard.
