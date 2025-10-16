@@ -18,20 +18,22 @@ To auto-generate match reports with all scores, events, and statistics.
 
 To make Ball Badminton smarter, fairer, and more interactive through technology.
 
-⚙️ Key Features
+⚙️ How It Works
 
-🎙️ Voice & Gesture-Based Scoring
+Voice & Gesture Recognition:
+Umpires can update scores using simple voice commands (via Web Speech API & Vosk) or gestures (via MediaPipe + OpenCV). Commands like “Point Team A” or a ✌️ hand gesture instantly update the live scoreboard.
 
-🔁 Real-Time Score Updates via WebSockets
+Real-Time Synchronization:
+The backend, built with Flask and Flask-SocketIO, updates all connected clients instantly — including the umpire dashboard and spectator view.
 
-📊 Event Logging & Live Analytics
+Database & Reports:
+Match data such as scores, service hands, and events are stored using SQLAlchemy (PostgreSQL/SQLite) and compiled into auto-generated PDF reports using ReportLab.
 
-🧠 AI-Driven Command Recognition
+Service Tracking:
+The system tracks which hand is serving (1–5) and displays consecutive service streaks to reduce confusion and improve accuracy.
 
-📄 Auto-Generated Match Reports (PDF)
-
-👀 Live Viewer Dashboard for Fans
-
+Spectator & Coach Features:
+Fans can view live match analytics and updates in real time, while coaches access post-match insights for performance analysis.
 # Live Scoreboard (Flask + Socket.IO + Bootstrap)
 
 
